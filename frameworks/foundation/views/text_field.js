@@ -152,6 +152,17 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
   autoCapitalize: SC.CAPITALIZE_SENTENCES,
 
   /**
+    Whether the browser should automatically complete the input.
+
+    When `autoComplete` is set to `null`, the browser will use
+    the system defaults.
+
+    @type Boolean
+    @default null
+   */
+  autoComplete: null,
+
+  /**
     Localizes the hint if necessary.
 
     @field
@@ -618,11 +629,12 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
         isEditable = this.get('isEditable'),
         autoCorrect = this.get('autoCorrect'),
         autoCapitalize = this.get('autoCapitalize'),
+        autoComplete = this.get('autoComplete'),
         isBrowserFocusable = this.get('isBrowserFocusable'),
-        spellCheckString = '', autocapitalizeString = '', autocorrectString = '',
-        activeStateString = '', browserFocusableString = '',
-        name, adjustmentStyle, type, element, paddingElementStyle,
-        fieldClassNames, isOldSafari;
+        spellCheckString='', autocapitalizeString='', autocorrectString='',
+      autocompleteString='', activeStateString = '', browserFocusableString = '',
+      name, adjustmentStyle, type, paddingElementStyle,
+      fieldClassNames, isOldSafari;
 
     context.setClass('text-area', isTextArea);
 
@@ -650,6 +662,10 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
         } else {
           autocapitalizeString = ' autocapitalize=' + autoCapitalize;
         }
+      }
+
+      if (!SC.none(autoComplete)) {
+        autocompleteString = ' autocomplete=' + (!autoComplete ? '"off"' : '"on"');
       }
 
       if (!isBrowserFocusable) {
@@ -708,10 +724,10 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
           type = 'password';
         }
 
-        context.push('<input aria-label="' + hint + '" class="' + fieldClassNames + '" type="' + type +
+        context.push('<input aria-label="' + hint + '" class="'+fieldClassNames+'" type="'+ type+
                       '" name="' + name + '"' + activeStateString + hintString +
                       spellCheckString + autocorrectString + autocapitalizeString +
-                      browserFocusableString + ' maxlength="' + maxLength +
+                      autocompleteString + browserFocusableString + ' maxlength="' + maxLength +
                       '" value="' + value + '"' + '/></div>');
       }
     } else {
@@ -764,6 +780,12 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
         }
       } else {
         input.attr('autocapitalize', null);
+      }
+
+      if (!SC.none(autoComplete)) {
+        input.attr('autoComplete', !autoComplete ? 'off' : 'on');
+      } else {
+        input.attr('autoComplete', null);
       }
 
       if (!hintOnFocus && SC.platform.input.placeholder) input.attr('placeholder', hint);
