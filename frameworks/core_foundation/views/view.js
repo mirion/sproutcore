@@ -173,9 +173,9 @@ SC.CoreView.reopen(
     @property
 
     @type Array
-    @default []
+    @default null
   */
-  autoMixins: [],
+  autoMixins: null,
 
   // ..........................................................
   // LAYER SUPPORT
@@ -1398,9 +1398,9 @@ SC.CoreView.reopen(
       attrs.createdByParent = true;
 
       // Insert the autoMixins if defined
-      var applyMixins = this.get("autoMixins");
+      var applyMixins = this.autoMixins;
 
-      if (!SC.none(applyMixins)) {
+      if (!!applyMixins) {
         applyMixins = SC.clone(applyMixins);
         applyMixins.push(attrs);
         view = view.create.apply(view, applyMixins);
