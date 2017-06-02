@@ -194,7 +194,7 @@ SC.DateFieldView = SC.TextFieldView.extend(
     If you override this method, you will probably need to override `removeDatePicker` as well.
 
     @method
-  */  
+  */
   appendDatePicker: function() {
     // If no datePicker instance, datePicker doesn't expose `popup` method, or datePicker is
     // explicitly not appended, there's nothing to do.
@@ -219,7 +219,7 @@ SC.DateFieldView = SC.TextFieldView.extend(
 
     @method
     @returns {Boolean} success
-  */  
+  */
   removeDatePicker: function() {
     // If no datePicker instance, datePicker doesn't expose `remove` method, or datePicker is
     // explicitly appended, there's nothing to do.
@@ -337,23 +337,25 @@ SC.DateFieldView = SC.TextFieldView.extend(
     Updates the value according the key.
   */
   updateValue: function(key, upOrDown) {
-    // 0 is DOWN - 1 is UP
-    var newValue = (upOrDown === 0) ? -1 : 1;
-    var value = this.get('value'), hour;
-    switch(key) {
-      case '%a': case '%d': case '%j': this.set('value', value.advance({ day: newValue })); break;
-      case '%b': case '%m': this.set('value', value.advance({ month: newValue })); break;
-      case '%H': case '%I': this.set('value', value.advance({ hour: newValue })); break;
-      case '%M': this.set('value', value.advance({ minute: newValue })); break;
-      case '%p': {
-        hour = value.get('hour') >= 12 ? -12 : 12;
-        this.set('value', value.advance({ hour: hour }));
-        break;
+    if (this.get('isEditable')) {
+      // 0 is DOWN - 1 is UP
+      var newValue = (upOrDown === 0) ? -1 : 1;
+      var value = this.get('value'), hour;
+      switch(key) {
+        case '%a': case '%d': case '%j': this.set('value', value.advance({ day: newValue })); break;
+        case '%b': case '%m': this.set('value', value.advance({ month: newValue })); break;
+        case '%H': case '%I': this.set('value', value.advance({ hour: newValue })); break;
+        case '%M': this.set('value', value.advance({ minute: newValue })); break;
+        case '%p': {
+          hour = value.get('hour') >= 12 ? -12 : 12;
+          this.set('value', value.advance({ hour: hour }));
+          break;
+        }
+        case '%S': this.set('value', value.advance({ second: newValue })); break;
+        case '%U': this.set('value', value.advance({ week1: newValue })); break;
+        case '%W': this.set('value', value.advance({ week0: newValue })); break;
+        case '%y': case '%Y': this.set('value', value.advance({ year: newValue })); break;
       }
-      case '%S': this.set('value', value.advance({ second: newValue })); break;
-      case '%U': this.set('value', value.advance({ week1: newValue })); break;
-      case '%W': this.set('value', value.advance({ week0: newValue })); break;
-      case '%y': case '%Y': this.set('value', value.advance({ year: newValue })); break;
     }
   },
 
@@ -375,15 +377,17 @@ SC.DateFieldView = SC.TextFieldView.extend(
 
   /** @private Handles syncing the date picker's value to our value, depending on settings. */
   _scdfv_datePickerValueDidChange: function() {
-    // If we're set to update on change, update.
-    if (this.get('updateOnPickerChange')) {
-      this.setIfChanged('value', this.get('_datePickerValue'));
-    }
-    // If we're set to dismiss on change and we're visible, update then dismiss.
-    if (this.get('dismissPickerOnChange') && this.get('datePickerIsShowing') && !this._isProxyingKeystroke) {
-      this.setIfChanged('value', this.get('_datePickerValue'));
-      this.set('datePickerIsShowing', NO);
-      this.resignFirstResponder();
+    if (this.get('isEditable')) {
+      // If we're set to update on change, update.
+      if (this.get('updateOnPickerChange')) {
+        this.setIfChanged('value', this.get('_datePickerValue'));
+      }
+      // If we're set to dismiss on change and we're visible, update then dismiss.
+      if (this.get('dismissPickerOnChange') && this.get('datePickerIsShowing') && !this._isProxyingKeystroke) {
+        this.setIfChanged('value', this.get('_datePickerValue'));
+        this.set('datePickerIsShowing', NO);
+        this.resignFirstResponder();
+      }
     }
     delete this._isProxyingKeystroke;
   }.observes('_datePickerValue'),
@@ -395,7 +399,9 @@ SC.DateFieldView = SC.TextFieldView.extend(
 
   /** @private If the user dismisses the modal, sync up the values and resign. */
   _scdfv_pickerDidDismissByModalPane: function() {
-    this.setIfChanged('value', this.get('_datePickerValue'));
+    if (this.get('isEditable')) {
+      this.setIfChanged('value', this.get('_datePickerValue'));
+    }
     this.resignFirstResponder();
   },
 
@@ -544,7 +550,9 @@ SC.DateFieldView = SC.TextFieldView.extend(
     // Give the date picker a chance to react first.
     this._scdfv_proxyKeystrokeToDatePicker('insertNewline', evt);
     if (this.get('datePickerIsShowing')) {
-      this.setIfChanged('value', this.get('_datePickerValue'));
+      if (this.get('isEditable')) {
+        this.setIfChanged('value', this.get('_datePickerValue'));
+      }
       this.set('datePickerIsShowing', NO);
       this.resignFirstResponder();
     }
