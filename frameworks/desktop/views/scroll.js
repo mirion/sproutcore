@@ -21,6 +21,10 @@ SC.NORMAL_SCROLL_DECELERATION = 0.95;
 */
 SC.FAST_SCROLL_DECELERATION = 0.85;
 
+SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_START = -1;
+SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_LOCK = 0;
+SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_END = null;
+
 /** @class
   Implements a complete scroll view.  This class uses a manual implementation
   of scrollers in order to properly support clipping frames.
@@ -89,6 +93,21 @@ SC.ScrollView = SC.View.extend({
     @default SC.ALIGN_TOP
   */
   verticalAlign: SC.ALIGN_TOP,
+
+  /**
+    The adjustment policy when scrolling to make visible a rectangle that is wider than the container
+     - SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_START: will make the left side visible
+     - SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_LOCK: will not scroll horizontally
+     - SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_END: will make the right side visible
+  */
+  horizontalScrollToRectPolicy: SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_END,
+  /**
+    The adjustment policy when scrolling to make visible a rectangle that is taller than the container
+     - SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_START: will make the top side visible
+     - SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_LOCK: will not scroll horizontally
+     - SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_END: will make the bottom side visible
+  */
+  verticalScrollToRectPolicy: SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_END,
 
   /**
     The current horizontal scroll offset. Changing this value will update both the contentView and the horizontal scroller, if there is one.
@@ -659,20 +678,65 @@ SC.ScrollView = SC.View.extend({
   */
   scrollToRect: function (rect) {
     // find current visible frame.
+    var horizontalScrollToRectPolicy = this.get('horizontalScrollToRectPolicy');
+    var verticalScrollToRectPolicy = this.get('verticalScrollToRectPolicy');
     var vo = SC.cloneRect(this.get('containerView').get('frame'));
+    var wider = (vo.width || 0) < (rect.width || 0);
+    var taller = (vo.height || 0) < (rect.height || 0);
 
     vo.x = this.get('horizontalScrollOffset');
     vo.y = this.get('verticalScrollOffset');
 
     var origX = vo.x, origY = vo.y;
 
-    // if top edge is not visible, shift origin
-    vo.y -= Math.max(0, SC.minY(vo) - SC.minY(rect));
-    vo.x -= Math.max(0, SC.minX(vo) - SC.minX(rect));
+    // if left edge is not visible, adjust
+    var adjustLeft = function()
+    {
+      vo.x -= Math.max(0, SC.minX(vo) - SC.minX(rect));
+    }
+    // if right edge is not visible, adjust
+    var adjustRight = function()
+    {
+      vo.x += Math.max(0, SC.maxX(rect) - SC.maxX(vo));
+    }
+    // if top edge is not visible, adjust
+    var adjustTop = function()
+    {
+      vo.y -= Math.max(0, SC.minY(vo) - SC.minY(rect));
+    }
+    // if bottom edge is not visible, adjust
+    var adjustBottom = function()
+    {
+      vo.y += Math.max(0, SC.maxY(rect) - SC.maxY(vo));
+    }
 
-    // if bottom edge is not visible, shift origin
-    vo.y += Math.max(0, SC.maxY(rect) - SC.maxY(vo));
-    vo.x += Math.max(0, SC.maxX(rect) - SC.maxX(vo));
+    if (!wider || horizontalScrollToRectPolicy === SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_END) {
+      adjustLeft();
+      adjustRight();
+    }
+    else if (horizontalScrollToRectPolicy === SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_START) {
+      adjustRight();
+      adjustLeft();
+    }
+    //@if(debug)
+    else if ( horizontalScrollToRectPolicy !== SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_LOCK ) {
+      SC.warn("Developer Warning: Invalid horizontalScrollToRectPolicy" );
+    }
+    //@endif
+
+    if (!taller || verticalScrollToRectPolicy === SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_END) {
+      adjustTop();
+      adjustBottom();
+    }
+    else if (verticalScrollToRectPolicy === SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_START) {
+      adjustBottom();
+      adjustTop();
+    }
+    //@if(debug)
+    else if ( verticalScrollToRectPolicy !== SC.SCROLL_TO_VISIBLE_OVERSIZE_PREFER_LOCK ) {
+      SC.warn("Developer Warning: Invalid verticalScrollToRectPolicy" );
+    }
+    //@endif
 
     // scroll to that origin.
     if ((origX !== vo.x) || (origY !== vo.y)) {
