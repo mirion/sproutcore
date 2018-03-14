@@ -277,7 +277,7 @@ SC.SelectView = SC.PopupButtonView.extend({
     var items = this.get('items'), len = items.get('length'), idx;
     for (idx = 0; idx < len; idx++) {
       var item = items.objectAt(idx);
-      
+
       if (this._scsv_getValueForMenuItem(item) === value) {
         this.setIfChanged('selectedItem', item);
         return;
@@ -447,6 +447,8 @@ SC.SelectView = SC.PopupButtonView.extend({
     Pressing the Up or Down arrow key should display the menu pane
   */
   interpretKeyEvents: function(event) {
+    if(!this.get('isEnabledInPane')) return YES;
+
     if (event) {
       if ((event.keyCode === 38 || event.keyCode === 40)) {
         this.showMenu();

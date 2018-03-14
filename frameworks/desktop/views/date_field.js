@@ -463,6 +463,10 @@ SC.DateFieldView = SC.TextFieldView.extend(
     }
   }.observes('activeSelection', 'useDatePicker'),
 
+   acceptsFirstResponder: function () {
+     return this.get('isEnabledInPane');
+   }.property('isEnabledInPane'),
+
   /** @private */
   didBecomeFirstResponder: function() {
     var ret = sc_super();
@@ -594,6 +598,7 @@ SC.DateFieldView = SC.TextFieldView.extend(
   /** @private */
   mouseUp: function(evt) {
     var ret = sc_super();
+    if (!this.get('isEnabledInPane')) return ret;
     // Select text based on current caret position.
     var cs = this.get('selection');
     if (SC.none(cs)) {

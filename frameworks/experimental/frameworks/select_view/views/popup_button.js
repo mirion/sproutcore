@@ -181,7 +181,7 @@ SC.PopupButtonView = SC.ButtonView.extend({
   /** @private */
   mouseDown: function(evt) {
     // If disabled, handle mouse down but ignore it.
-    if (!this.get('isEnabled')) return YES ;
+    if (!this.get('isEnabledInPane')) return YES ;
 
     this.set('_mouseDown', YES);
 
