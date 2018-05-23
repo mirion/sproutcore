@@ -1186,9 +1186,9 @@ SC.StatechartManager = /** @scope SC.StatechartManager.prototype */{
       state = currentStates[i];
       if (!state.get('isCurrentState')) continue;
       while (!eventHandled && state) {
-        if (!checkedStates[state.get('fullPath')]) {
+        if ((eventHandled = checkedStates[state.get('fullPath')]) == undefined) {
           eventHandled = state.tryToHandleEvent(event, arg1, arg2);
-          checkedStates[state.get('fullPath')] = YES;
+          checkedStates[state.get('fullPath')] = !!eventHandled;
         }
         if (!eventHandled) state = state.get('parentState');
         else statechartHandledEvent = YES;
