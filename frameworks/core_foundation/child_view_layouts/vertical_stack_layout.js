@@ -261,6 +261,8 @@ SC.mixin(SC.View,
 
       view._childViewsStartPositions = (view._childViewsStartPositions && view._childViewsStartPositions.length == len)
                                          ? view._childViewsStartPositions : new Array(len);
+      view._childViewsDimensions = (view._childViewsDimensions && view._childViewsDimensions.length == len)
+                                         ? view._childViewsDimensions : new Array(len);
       view._childViewsToClipSystematically = view._childViewsToClipSystematically || [];
 
       // if the view is not configured to resize to fit content, then we give a chance to the children to fill the available space
@@ -407,8 +409,8 @@ SC.mixin(SC.View,
           childView.adjust('top', position);
 
         view._childViewsStartPositions[i] = position;
-
-        position += childView.getPath('borderFrame.height');
+        view._childViewsDimensions[i] = childView.getPath('borderFrame.height');
+        position += view._childViewsDimensions[i];
 
         // Determine the right margin.
         lastMargin = childView.get('marginAfter') || 0;
@@ -473,8 +475,9 @@ SC.mixin(SC.View,
                   }
                   childViews[idx]._sc_view_recursiveCallClippingFrameDidChange();
                 } else {
-                  if (idx == len - 1) {
+                  if (view._childViewsDimensions[idx] + position >= clippingEnd) {
                     childViews[idx]._sc_view_recursiveCallClippingFrameDidChange();
+                    break;
                   }
                 }
 
