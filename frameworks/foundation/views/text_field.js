@@ -157,7 +157,7 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
     When `autoComplete` is set to `null`, the browser will use
     the system defaults.
 
-    @type Boolean
+    @type Boolean/String
     @default null
    */
   autoComplete: null,
@@ -632,9 +632,9 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
         autoComplete = this.get('autoComplete'),
         isBrowserFocusable = this.get('isBrowserFocusable'),
         spellCheckString='', autocapitalizeString='', autocorrectString='',
-      autocompleteString='', activeStateString = '', browserFocusableString = '',
-      name, adjustmentStyle, type, paddingElementStyle,
-      fieldClassNames, isOldSafari;
+        autocompleteString='', activeStateString = '', browserFocusableString = '',
+        name, adjustmentStyle, type, paddingElementStyle,
+        fieldClassNames, isOldSafari;
 
     context.setClass('text-area', isTextArea);
 
@@ -665,7 +665,7 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
       }
 
       if (!SC.none(autoComplete)) {
-        autocompleteString = ' autocomplete=' + (!autoComplete ? '"off"' : '"on"');
+        autocompleteString = ' autocomplete=' + (SC.typeOf(autoComplete) == SC.T_STRING ? ('"' + autoComplete + '"') : (!autoComplete ? '"off"' : '"on"'));
       }
 
       if (!isBrowserFocusable) {
@@ -783,7 +783,7 @@ SC.TextFieldView = SC.FieldView.extend(SC.Editable,
       }
 
       if (!SC.none(autoComplete)) {
-        input.attr('autoComplete', !autoComplete ? 'off' : 'on');
+        input.attr('autoComplete', SC.typeOf(autoComplete) == SC.T_STRING ? autoComplete : (!autoComplete ? 'off' : 'on'));
       } else {
         input.attr('autoComplete', null);
       }
